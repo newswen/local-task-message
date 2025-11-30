@@ -1,6 +1,7 @@
 package com.yw.local.task.message.domain.service.impl;
 
 import com.yw.local.task.message.domain.adapter.event.ILocalTaskMessagePublisher;
+import com.yw.local.task.message.domain.adapter.repository.ILocalTaskMessageRepository;
 import com.yw.local.task.message.domain.model.entity.LocalTaskMessageEntityCommand;
 import com.yw.local.task.message.domain.service.ILocalTaskMessageHandleService;
 import lombok.extern.slf4j.Slf4j;
@@ -20,9 +21,13 @@ public class LocalTaskMessageHandleService implements ILocalTaskMessageHandleSer
     @Resource
     private ILocalTaskMessagePublisher localTaskMessagePublisher;
 
+    @Resource
+    private ILocalTaskMessageRepository localTaskMessageRepository;
+
     @Override
     public void handleLocalTaskMessage(LocalTaskMessageEntityCommand command) {
         //todo 先保存到消息任务数据库
+        localTaskMessageRepository.saveTaskMessage(command);
         localTaskMessagePublisher.publish(command);
     }
 }
