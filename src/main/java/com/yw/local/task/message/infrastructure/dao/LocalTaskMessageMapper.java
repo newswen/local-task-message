@@ -2,6 +2,8 @@ package com.yw.local.task.message.infrastructure.dao;
 
 import com.yw.local.task.message.infrastructure.dao.po.LocalTaskMessage;
 
+import java.sql.SQLException;
+
 /**
  * @Author: yw
  * @Date: 2025/11/30 18:40
@@ -12,6 +14,6 @@ public interface LocalTaskMessageMapper {
     /**
      * 插入任务消息
      */
-    int insert(LocalTaskMessage record);
+    void insert(LocalTaskMessage record) throws SQLException;
 
 }

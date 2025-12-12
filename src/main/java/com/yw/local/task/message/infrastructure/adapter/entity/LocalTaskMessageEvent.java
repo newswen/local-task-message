@@ -12,7 +12,7 @@ import org.springframework.context.ApplicationEvent;
 @Getter
 public class LocalTaskMessageEvent extends ApplicationEvent {
 
-    private LocalTaskMessageEntityCommand localTaskMessageEntityCommand;
+    private final LocalTaskMessageEntityCommand localTaskMessageEntityCommand;
 
 
     public LocalTaskMessageEvent(Object source, LocalTaskMessageEntityCommand localTaskMessageEntityCommand) {

@@ -14,8 +14,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public enum TaskMessageNotifyEnum {
 
-    RABBITMQ("rabbitmq", "rabbitmqNotifyStrategy", "rabbitmq"),
-    HTTP("http", "httpNotifyStrategy", "http");
+    RABBITMQ("rabbitmq", "rabbitmqNotifyStrategy", "rabbitmq配置"),
+    HTTP("http", "httpNotifyStrategy", "http配置");
 
     private String code;
     private String strategy;
