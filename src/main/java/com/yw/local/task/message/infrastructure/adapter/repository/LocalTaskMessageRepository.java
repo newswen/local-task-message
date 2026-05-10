@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
+import java.sql.SQLException;
 
 /**
  * @Author: yw
@@ -23,7 +24,7 @@ public class LocalTaskMessageRepository implements ILocalTaskMessageRepository {
     private LocalTaskMessageMapper localTaskMessageMapper;
 
     @Override
-    public void saveTaskMessage(LocalTaskMessageEntityCommand localTaskMessageEntityCommand) {
+    public void saveTaskMessage(LocalTaskMessageEntityCommand localTaskMessageEntityCommand) throws SQLException {
 
         LocalTaskMessage localTaskMessage = new LocalTaskMessage();
         localTaskMessage.setTaskId(localTaskMessageEntityCommand.getTaskId());
