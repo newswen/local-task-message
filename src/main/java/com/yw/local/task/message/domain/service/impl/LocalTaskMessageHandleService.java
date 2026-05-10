@@ -26,12 +26,14 @@ public class LocalTaskMessageHandleService implements ILocalTaskMessageHandleSer
 
     @Override
     public void handleLocalTaskMessage(LocalTaskMessageEntityCommand command) {
-       try{
-           localTaskMessageRepository.saveTaskMessage(command);
-           localTaskMessagePublisher.publish(command);
-       }catch (Exception e){
-           log.error("本地消息组件处理任务失败：{}", e.getMessage(), e);
-           throw new RuntimeException(e);
-       }
+        try {
+            //1.保存当前发送任务消息
+            localTaskMessageRepository.saveTaskMessage(command);
+            //2.发送消息
+            localTaskMessagePublisher.publish(command);
+        } catch (Exception e) {
+            log.error("本地消息组件处理任务失败：{}", command, e);
+            throw new RuntimeException(e);
+        }
     }
 }

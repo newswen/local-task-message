@@ -15,8 +15,8 @@ import lombok.NoArgsConstructor;
 public enum TaskStatusEnum {
 
     CREATED(0, "创建"),
-    COMPLETED(2, "已完成"),
-    FAILED(3, "失败");
+    COMPLETED(1, "已完成"),
+    FAILED(2, "失败");
 
     private Integer code;      // 状态码
     private String desc;       // 状态描述
