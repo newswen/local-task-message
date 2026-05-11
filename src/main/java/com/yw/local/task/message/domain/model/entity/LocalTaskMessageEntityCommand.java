@@ -52,6 +52,11 @@ public class LocalTaskMessageEntityCommand {
      */
     private Integer houseNumber;
 
+    /**
+     * 回调结果
+     */
+    private String callbackResult;
+
 
     /*
      * 通知类型 mq http

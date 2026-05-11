@@ -44,7 +44,7 @@ public class LocalTaskMessage {
     private String notifyConfig;
 
     /**
-     * 状态（0-待处理，1-处理中，2-已完成，3-失败）
+     * 状态（0-待处理，1-已完成，2-失败）
      */
     private Integer status;
 
@@ -57,6 +57,11 @@ public class LocalTaskMessage {
      * 门牌号
      */
     private Integer houseNumber;
+
+    /**
+     * 回调结果
+     */
+    private String callbackResult;
 
     /**
      * 创建时间

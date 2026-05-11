@@ -24,7 +24,7 @@ public class LocalTaskMessageMapperImpl implements LocalTaskMessageMapper {
     private DataSource dataSource;
 
     @Override
-    public void insert(LocalTaskMessage record) throws SQLException {
+    public void insert(LocalTaskMessage record) {
         // SQL 插入语句
         String sql = "INSERT INTO local_task_message (" +
                 "task_id, task_name, notify_type, notify_config," +
@@ -46,9 +46,48 @@ public class LocalTaskMessageMapperImpl implements LocalTaskMessageMapper {
             if (rows != 1) {
                 throw new RuntimeException("本地消息组件插入数据失败 未成功插入一个 taskId:{}" + record.getTaskId());
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             log.error("本地消息组件插入数据失败 taskId:{}", record.getTaskId(), e);
-            throw e;
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void updateTaskStatusSuccess(LocalTaskMessage localTaskMessage) {
+        String sql = "UPDATE local_task_message SET status = ? WHERE task_id = ?";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setInt(1, localTaskMessage.getStatus());
+            ps.setString(2, localTaskMessage.getTaskId());
+
+            int rows = ps.executeUpdate();
+            if (rows != 1) {
+                throw new RuntimeException("本地消息组件更新数据失败 未成功更新一个 taskId:{}" + localTaskMessage.getTaskId());
+            }
+        } catch (SQLException e) {
+            log.error("本地消息组件更新数据失败 taskId:{}", localTaskMessage.getTaskId(), e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void updateTaskStatusFail(LocalTaskMessage localTaskMessage) {
+        String sql = "UPDATE local_task_message SET status = ? WHERE task_id = ?";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setInt(1, localTaskMessage.getStatus());
+            ps.setString(2, localTaskMessage.getTaskId());
+
+            int rows = ps.executeUpdate();
+            if (rows != 1) {
+                throw new RuntimeException("本地消息组件更新数据失败 未成功更新一个 taskId:{}" + localTaskMessage.getTaskId());
+            }
+        } catch (SQLException e) {
+            log.error("本地消息组件更新数据失败 taskId:{}", localTaskMessage.getTaskId(), e);
+            throw new RuntimeException(e);
         }
     }
 }

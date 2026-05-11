@@ -3,6 +3,7 @@ package com.yw.local.task.message.infrastructure.adapter.repository;
 import com.alibaba.fastjson.JSON;
 import com.yw.local.task.message.domain.adapter.repository.ILocalTaskMessageRepository;
 import com.yw.local.task.message.domain.model.entity.LocalTaskMessageEntityCommand;
+import com.yw.local.task.message.domain.model.vo.enums.TaskStatusEnum;
 import com.yw.local.task.message.infrastructure.dao.LocalTaskMessageMapper;
 import com.yw.local.task.message.infrastructure.dao.po.LocalTaskMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +25,7 @@ public class LocalTaskMessageRepository implements ILocalTaskMessageRepository {
     private LocalTaskMessageMapper localTaskMessageMapper;
 
     @Override
-    public void saveTaskMessage(LocalTaskMessageEntityCommand localTaskMessageEntityCommand) throws SQLException {
+    public void saveTaskMessage(LocalTaskMessageEntityCommand localTaskMessageEntityCommand){
 
         LocalTaskMessage localTaskMessage = new LocalTaskMessage();
         localTaskMessage.setTaskId(localTaskMessageEntityCommand.getTaskId());
@@ -39,5 +40,22 @@ public class LocalTaskMessageRepository implements ILocalTaskMessageRepository {
         localTaskMessage.setHouseNumber(houseNumber);
 
         localTaskMessageMapper.insert(localTaskMessage);
+    }
+
+    @Override
+    public void updateTaskStatusSuccess(LocalTaskMessageEntityCommand event) {
+        LocalTaskMessage localTaskMessage = new LocalTaskMessage();
+        localTaskMessage.setStatus(TaskStatusEnum.COMPLETED.getCode());
+        localTaskMessage.setTaskId(event.getTaskId());
+        localTaskMessage.setCallbackResult(event.getCallbackResult());
+        localTaskMessageMapper.updateTaskStatusSuccess(localTaskMessage);
+    }
+
+    @Override
+    public void updateTaskStatusFail(LocalTaskMessageEntityCommand event) {
+        LocalTaskMessage localTaskMessage = new LocalTaskMessage();
+        localTaskMessage.setStatus(TaskStatusEnum.FAILED.getCode());
+        localTaskMessage.setTaskId(event.getTaskId());
+        localTaskMessageMapper.updateTaskStatusFail(localTaskMessage);
     }
 }

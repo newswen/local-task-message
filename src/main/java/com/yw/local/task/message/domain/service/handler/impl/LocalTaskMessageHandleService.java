@@ -1,4 +1,4 @@
-package com.yw.local.task.message.domain.service.impl;
+package com.yw.local.task.message.domain.service.handler.impl;
 
 import com.yw.local.task.message.domain.adapter.event.ILocalTaskMessagePublisher;
 import com.yw.local.task.message.domain.adapter.repository.ILocalTaskMessageRepository;
