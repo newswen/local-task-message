@@ -9,6 +9,9 @@ public @interface LocalTaskMessage {
 
     /**
      * 实体属性名称
+     *
+     *
+     *
      */
     String entityAttributeName() default "";
 

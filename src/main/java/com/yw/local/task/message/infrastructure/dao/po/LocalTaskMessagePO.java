@@ -16,7 +16,7 @@ import java.time.LocalDate;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class LocalTaskMessage {
+public class LocalTaskMessagePO {
 
     /**
      * 自增主键
