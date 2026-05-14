@@ -5,7 +5,7 @@ import com.yw.local.task.message.domain.adapter.repository.ILocalTaskMessageRepo
 import com.yw.local.task.message.domain.model.entity.LocalTaskMessageEntityCommand;
 import com.yw.local.task.message.domain.model.vo.enums.TaskStatusEnum;
 import com.yw.local.task.message.infrastructure.dao.LocalTaskMessageMapper;
-import com.yw.local.task.message.infrastructure.dao.po.LocalTaskMessage;
+import com.yw.local.task.message.infrastructure.dao.po.LocalTaskMessagePO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
@@ -27,19 +27,19 @@ public class LocalTaskMessageRepository implements ILocalTaskMessageRepository {
     @Override
     public void saveTaskMessage(LocalTaskMessageEntityCommand localTaskMessageEntityCommand){
 
-        LocalTaskMessage localTaskMessage = new LocalTaskMessage();
-        localTaskMessage.setTaskId(localTaskMessageEntityCommand.getTaskId());
-        localTaskMessage.setTaskName(localTaskMessageEntityCommand.getTaskName());
-        localTaskMessage.setNotifyType(localTaskMessageEntityCommand.getNotifyType().getCode());
-        localTaskMessage.setNotifyConfig(JSON.toJSONString(localTaskMessageEntityCommand.getNotifyConfig()));
-        localTaskMessage.setParameterJson(JSON.toJSONString(localTaskMessageEntityCommand.getParameterJson()));
+        LocalTaskMessagePO localTaskMessagePO = new LocalTaskMessagePO();
+        localTaskMessagePO.setTaskId(localTaskMessageEntityCommand.getTaskId());
+        localTaskMessagePO.setTaskName(localTaskMessageEntityCommand.getTaskName());
+        localTaskMessagePO.setNotifyType(localTaskMessageEntityCommand.getNotifyType().getCode());
+        localTaskMessagePO.setNotifyConfig(JSON.toJSONString(localTaskMessageEntityCommand.getNotifyConfig()));
+        localTaskMessagePO.setParameterJson(JSON.toJSONString(localTaskMessageEntityCommand.getParameterJson()));
 
         //门牌号 设置为0-9 10个定时任务
         int hashCode = Math.abs(localTaskMessageEntityCommand.getTaskId().hashCode());
         int houseNumber = hashCode % 10;
-        localTaskMessage.setHouseNumber(houseNumber);
+        localTaskMessagePO.setHouseNumber(houseNumber);
 
-        localTaskMessageMapper.insert(localTaskMessage);
+        localTaskMessageMapper.insert(localTaskMessagePO);
     }
 
     @Override

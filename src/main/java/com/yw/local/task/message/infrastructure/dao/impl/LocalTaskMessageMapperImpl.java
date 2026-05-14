@@ -1,7 +1,7 @@
 package com.yw.local.task.message.infrastructure.dao.impl;
 
 import com.yw.local.task.message.infrastructure.dao.LocalTaskMessageMapper;
-import com.yw.local.task.message.infrastructure.dao.po.LocalTaskMessage;
+import com.yw.local.task.message.infrastructure.dao.po.LocalTaskMessagePO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +24,7 @@ public class LocalTaskMessageMapperImpl implements LocalTaskMessageMapper {
     private DataSource dataSource;
 
     @Override
-    public void insert(LocalTaskMessage record) {
+    public void insert(LocalTaskMessagePO record) throws SQLException {
         // SQL 插入语句
         String sql = "INSERT INTO local_task_message (" +
                 "task_id, task_name, notify_type, notify_config," +
