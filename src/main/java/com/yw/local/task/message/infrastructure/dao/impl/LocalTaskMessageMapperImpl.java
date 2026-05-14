@@ -24,7 +24,7 @@ public class LocalTaskMessageMapperImpl implements LocalTaskMessageMapper {
     private DataSource dataSource;
 
     @Override
-    public void insert(LocalTaskMessagePO record) throws SQLException {
+    public void insert(LocalTaskMessagePO record){
         // SQL 插入语句
         String sql = "INSERT INTO local_task_message (" +
                 "task_id, task_name, notify_type, notify_config," +
@@ -53,7 +53,7 @@ public class LocalTaskMessageMapperImpl implements LocalTaskMessageMapper {
     }
 
     @Override
-    public void updateTaskStatusSuccess(LocalTaskMessage localTaskMessage) {
+    public void updateTaskStatusSuccess(LocalTaskMessagePO localTaskMessage) {
         String sql = "UPDATE local_task_message SET status = ? WHERE task_id = ?";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -72,7 +72,7 @@ public class LocalTaskMessageMapperImpl implements LocalTaskMessageMapper {
     }
 
     @Override
-    public void updateTaskStatusFail(LocalTaskMessage localTaskMessage) {
+    public void updateTaskStatusFail(LocalTaskMessagePO localTaskMessage) {
         String sql = "UPDATE local_task_message SET status = ? WHERE task_id = ?";
 
         try (Connection connection = dataSource.getConnection();

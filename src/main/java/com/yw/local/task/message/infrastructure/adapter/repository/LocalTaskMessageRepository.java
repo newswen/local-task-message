@@ -44,7 +44,7 @@ public class LocalTaskMessageRepository implements ILocalTaskMessageRepository {
 
     @Override
     public void updateTaskStatusSuccess(LocalTaskMessageEntityCommand event) {
-        LocalTaskMessage localTaskMessage = new LocalTaskMessage();
+        LocalTaskMessagePO localTaskMessage = new LocalTaskMessagePO();
         localTaskMessage.setStatus(TaskStatusEnum.COMPLETED.getCode());
         localTaskMessage.setTaskId(event.getTaskId());
         localTaskMessage.setCallbackResult(event.getCallbackResult());
@@ -53,7 +53,7 @@ public class LocalTaskMessageRepository implements ILocalTaskMessageRepository {
 
     @Override
     public void updateTaskStatusFail(LocalTaskMessageEntityCommand event) {
-        LocalTaskMessage localTaskMessage = new LocalTaskMessage();
+        LocalTaskMessagePO localTaskMessage = new LocalTaskMessagePO();
         localTaskMessage.setStatus(TaskStatusEnum.FAILED.getCode());
         localTaskMessage.setTaskId(event.getTaskId());
         localTaskMessageMapper.updateTaskStatusFail(localTaskMessage);

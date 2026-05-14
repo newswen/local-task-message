@@ -14,7 +14,7 @@ public interface ILocalTaskMessageRepository {
     /**
      * 保存任务消息
      */
-    void saveTaskMessage(LocalTaskMessageEntityCommand localTaskMessageEntityCommand) throws SQLException;
+    void saveTaskMessage(LocalTaskMessageEntityCommand localTaskMessageEntityCommand);
 
     void updateTaskStatusSuccess(LocalTaskMessageEntityCommand event);
 

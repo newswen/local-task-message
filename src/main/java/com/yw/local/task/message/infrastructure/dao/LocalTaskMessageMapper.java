@@ -14,9 +14,9 @@ public interface LocalTaskMessageMapper {
     /**
      * 插入任务消息
      */
-    void insert(LocalTaskMessagePO record) throws SQLException;
+    void insert(LocalTaskMessagePO record);
 
-    void updateTaskStatusSuccess(LocalTaskMessage localTaskMessage);
+    void updateTaskStatusSuccess(LocalTaskMessagePO localTaskMessage);
 
-    void updateTaskStatusFail(LocalTaskMessage localTaskMessage);
+    void updateTaskStatusFail(LocalTaskMessagePO localTaskMessage);
 }
