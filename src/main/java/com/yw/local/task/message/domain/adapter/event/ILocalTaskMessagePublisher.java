@@ -3,15 +3,17 @@ package com.yw.local.task.message.domain.adapter.event;
 import com.yw.local.task.message.domain.model.entity.LocalTaskMessageEntityCommand;
 
 /**
- * @Author: yw
- * @Date: 2025/11/30 15:59
- * @Description:Spring Event事件发送接口 由基座进行实现
- **/
+ * 本地消息事件发布接口。
+ * <p>
+ * 当前由 Spring ApplicationEvent 实现，
+ * 后续如果要替换为别的进程内事件机制，也只需要改适配层。
+ */
 public interface ILocalTaskMessagePublisher {
+
     /**
-     * 发送事件
+     * 发布本地消息事件。
      *
-     * @param event
+     * @param event 本地消息实体
      */
     void publish(LocalTaskMessageEntityCommand event);
 }

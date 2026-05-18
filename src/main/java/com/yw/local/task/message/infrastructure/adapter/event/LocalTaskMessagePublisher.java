@@ -9,10 +9,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 
 /**
- * @Author: yw
- * @Date: 2025/11/30 16:01
- * @Description:
- **/
+ * 本地消息事件发布实现。
+ */
 @Service
 public class LocalTaskMessagePublisher implements ILocalTaskMessagePublisher {
 

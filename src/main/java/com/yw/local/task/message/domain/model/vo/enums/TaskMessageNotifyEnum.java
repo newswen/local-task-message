@@ -2,22 +2,45 @@ package com.yw.local.task.message.domain.model.vo.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 /**
- * @Author: yw
- * @Date: 2025/11/30 18:43
- * @Description:消息回调通知类型：rabbitmq http
- **/
+ * 消息通知类型枚举。
+ */
 @Getter
 @AllArgsConstructor
-@NoArgsConstructor
 public enum TaskMessageNotifyEnum {
 
+    /**
+     * RabbitMQ 通知。
+     */
     RABBITMQ("rabbitmq", "rabbitmqNotifyStrategy", "rabbitmq配置"),
+
+    /**
+     * HTTP 回调通知。
+     */
     HTTP("http", "httpNotifyStrategy", "http配置");
 
-    private String code;
-    private String strategy;
-    private String desc;
+    /**
+     * 存库编码。
+     */
+    private final String code;
+
+    /**
+     * Spring 容器中的策略 Bean 名称。
+     */
+    private final String strategy;
+
+    /**
+     * 类型描述。
+     */
+    private final String desc;
+
+    public static TaskMessageNotifyEnum fromCode(String code) {
+        for (TaskMessageNotifyEnum notifyEnum : TaskMessageNotifyEnum.values()) {
+            if (notifyEnum.getCode().equals(code)) {
+                return notifyEnum;
+            }
+        }
+        throw new IllegalArgumentException("未知通知类型：" + code);
+    }
 }

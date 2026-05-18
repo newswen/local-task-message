@@ -10,10 +10,12 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 
 /**
- * @Author: yw
- * @Date: 2025/11/30 16:15
- * @Description:提供给外部调用的本地消息组件服务实现
- **/
+ * 本地任务消息入口服务实现。
+ * <p>
+ * 处理顺序固定为：
+ * 1. 落库
+ * 2. 发布异步事件
+ */
 @Service
 @Slf4j
 public class LocalTaskMessageHandleService implements ILocalTaskMessageHandleService {
@@ -27,12 +29,10 @@ public class LocalTaskMessageHandleService implements ILocalTaskMessageHandleSer
     @Override
     public void handleLocalTaskMessage(LocalTaskMessageEntityCommand command) {
         try {
-            //1.保存当前发送任务消息
             localTaskMessageRepository.saveTaskMessage(command);
-            //2.发送消息
             localTaskMessagePublisher.publish(command);
         } catch (Exception e) {
-            log.error("本地消息组件处理任务失败：{}", command, e);
+            log.error("本地消息组件处理失败，taskId={}，taskName={}", command.getTaskId(), command.getTaskName(), e);
             throw new RuntimeException(e);
         }
     }

@@ -5,15 +5,18 @@ import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
 /**
- * @Author: yw
- * @Date: 2025/11/30 15:53
- * @Description:Spring Event发送消息事件 该事件包含到消息本体
- **/
+ * 本地消息 Spring 事件。
+ * <p>
+ * 事件体中直接携带业务侧组装好的消息实体，
+ * 供异步监听器继续执行即时通知。
+ */
 @Getter
 public class LocalTaskMessageEvent extends ApplicationEvent {
 
+    /**
+     * 本地消息实体。
+     */
     private final LocalTaskMessageEntityCommand localTaskMessageEntityCommand;
-
 
     public LocalTaskMessageEvent(Object source, LocalTaskMessageEntityCommand localTaskMessageEntityCommand) {
         super(source);

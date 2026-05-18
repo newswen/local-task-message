@@ -10,51 +10,53 @@ import lombok.NoArgsConstructor;
 import java.util.Map;
 
 /**
- * @Author: yw
- * @Date: 2025/11/30 15:50
- * @Description:消息任务本体
- **/
+ * 本地任务消息实体。
+ */
 @Data
 public class LocalTaskMessageEntityCommand {
 
     /**
-     * 任务ID
+     * 任务 ID。
      */
     private String taskId;
 
     /**
-     * 任务名称
+     * 任务名称。
+     * <p>
+     * 当前方案中同时作为业务名称使用。
      */
     private String taskName;
 
     /**
-     * 通知类型；rabbitmq、http
+     * 通知类型。
      */
     private TaskMessageNotifyEnum notifyType;
 
     /**
-     * 通知配置（JSON格式，包含mqTopic和url等信息）
+     * 通知配置。
      */
     private NotifyConfig notifyConfig;
 
     /**
-     * 状态（0-创建，2-已完成，3-失败）
+     * 当前消息状态。
      */
     private TaskStatusEnum status;
 
     /**
-     * 参数JSON
+     * 业务参数 JSON。
      */
     private String parameterJson;
 
     /**
-     * 门牌号
+     * 门牌号。
+     * <p>
+     * 如果方法上的 houses 只配置了一个门牌，组件可自动补齐；
+     * 如果配置了多个门牌，则必须由业务显式指定。
      */
     private Integer houseNumber;
 
-
-    /*
-     * 通知类型 mq http
+    /**
+     * 通知配置，按具体类型承载 MQ / HTTP 的细节。
      */
     @Data
     @Builder
@@ -62,8 +64,14 @@ public class LocalTaskMessageEntityCommand {
     @NoArgsConstructor
     public static class NotifyConfig {
 
+        /**
+         * RabbitMQ 配置。
+         */
         private MQ mq;
 
+        /**
+         * HTTP 配置。
+         */
         private HTTP http;
 
         @Data
@@ -71,7 +79,14 @@ public class LocalTaskMessageEntityCommand {
         @AllArgsConstructor
         @NoArgsConstructor
         public static class MQ {
+            /**
+             * 路由键。
+             */
             private String topic;
+
+            /**
+             * 交换机名称。
+             */
             private String exchange;
         }
 
@@ -80,9 +95,19 @@ public class LocalTaskMessageEntityCommand {
         @AllArgsConstructor
         @NoArgsConstructor
         public static class HTTP {
+            /**
+             * 回调地址。
+             */
             private String url;
+
+            /**
+             * 请求方法，例如 GET / POST。
+             */
             private String method;
-            //包含Content-Type以及授权相关其他请求头
+
+            /**
+             * 请求头集合，包含 Content-Type 和鉴权信息等。
+             */
             private Map<String, String> headers;
         }
 

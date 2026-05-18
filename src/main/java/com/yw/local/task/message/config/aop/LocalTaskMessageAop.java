@@ -1,8 +1,11 @@
 package com.yw.local.task.message.config.aop;
 
 import com.yw.local.task.message.LocalTaskMessage;
+import com.yw.local.task.message.config.properties.LocalTaskMessageProperties;
 import com.yw.local.task.message.domain.model.entity.LocalTaskMessageEntityCommand;
 import com.yw.local.task.message.domain.service.ILocalTaskMessageHandleService;
+import com.yw.local.task.message.infrastructure.support.HouseNumberRangeParser;
+import com.yw.local.task.message.infrastructure.support.LocalTaskMessageHouseContext;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -13,23 +16,25 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.BeansException;
-import org.springframework.stereotype.Component;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
 
 /**
- * @Author: yw
- * @Date: 2026/5/14 09:17
- * @Description:
- **/
-//切面-把通用功能模块化的类
+ * 本地消息切面。
+ * <p>
+ * 该切面负责两件事：
+ * 1. 从被 {@code @LocalTaskMessage} 标记的方法中提取消息实体
+ * 2. 把当前方法声明的门牌范围放入线程上下文，供仓储层落库时使用
+ */
 @Aspect
 @Component
 @Slf4j
@@ -43,31 +48,44 @@ public class LocalTaskMessageAop {
     @Resource
     private ILocalTaskMessageHandleService localTaskMessageHandleService;
 
-    /**
-     * 切点-从哪里切入，注解定义的地方
-     */
+    @Resource
+    private LocalTaskMessageProperties localTaskMessageProperties;
+
     @Pointcut("@annotation(com.yw.local.task.message.LocalTaskMessage)")
     public void pointcut() {
     }
 
     @Around("pointcut() && @annotation(localTaskMessage)")
     public Object notify(ProceedingJoinPoint joinPoint, LocalTaskMessage localTaskMessage) throws Throwable {
-        //获取切入点完整方法签名
-        String signature = joinPoint.getSignature().toShortString();
-        String entityAttributeName = localTaskMessage.entityAttributeName();
-
-        // 判断【当前是否存在真实的、活跃的事务】
-        boolean isActive = TransactionSynchronizationManager.isActualTransactionActive();
-        //1.有事务就直接处理消息
-        if (isActive) {
-            return processLocalTaskMessage(joinPoint, signature, entityAttributeName);
+        if (!localTaskMessageProperties.isEnabled()) {
+            return joinPoint.proceed();
         }
 
-        //2.无事务就创建事务
+        String signature = joinPoint.getSignature().toShortString();
+        List<Integer> houseNumbers = HouseNumberRangeParser.parse(
+                localTaskMessage.houses(),
+                localTaskMessageProperties.getHouse().getTotalCount()
+        );
+
+        /*
+         * 如果外部业务本身已经在事务里，就直接复用当前事务。
+         * 如果没有事务，则由组件自己包一层，保证“业务方法执行 + 消息落库”处于同一个事务边界。
+         */
+        boolean transactionActive = TransactionSynchronizationManager.isActualTransactionActive();
+        if (transactionActive) {
+            return processLocalTaskMessage(joinPoint, signature, localTaskMessage.entityAttributeName(), localTaskMessage.houses(), houseNumbers);
+        }
+
         try {
             return transactionTemplate.execute(status -> {
                 try {
-                    return processLocalTaskMessage(joinPoint, signature, entityAttributeName);
+                    return processLocalTaskMessage(
+                            joinPoint,
+                            signature,
+                            localTaskMessage.entityAttributeName(),
+                            localTaskMessage.houses(),
+                            houseNumbers
+                    );
                 } catch (Throwable e) {
                     status.setRollbackOnly();
                     throw new LocalTaskMessageAopRuntimeException(e);
@@ -76,33 +94,49 @@ public class LocalTaskMessageAop {
         } catch (LocalTaskMessageAopRuntimeException e) {
             throw e.getCause();
         }
-
     }
 
-    private Object processLocalTaskMessage(ProceedingJoinPoint joinPoint, String signature, String entityAttributeName) throws Throwable {
+    private Object processLocalTaskMessage(ProceedingJoinPoint joinPoint,
+                                           String signature,
+                                           String entityAttributeName,
+                                           String housesExpression,
+                                           List<Integer> houseNumbers) throws Throwable {
+        /*
+         * 这里需要保存旧上下文并在 finally 中恢复，
+         * 否则嵌套调用被注解方法时，外层上下文会被内层覆盖掉。
+         */
+        LocalTaskMessageHouseContext.RouteContext previousContext = LocalTaskMessageHouseContext.get();
+        LocalTaskMessageHouseContext.bind(new LocalTaskMessageHouseContext.RouteContext(signature, housesExpression, houseNumbers));
         try {
-            //1. 执行具体方法
             Object result = joinPoint.proceed();
-            //从切入点方法中的参数结合注解内参数去获取本地消息实体
-            LocalTaskMessageEntityCommand localTaskMessageEntityCommand = getLocalTaskMessageEntityCommand(joinPoint, entityAttributeName);
-            if (localTaskMessageEntityCommand != null) {
-                //2. 执行本地消息相关
-                localTaskMessageHandleService.handleLocalTaskMessage(localTaskMessageEntityCommand);
-            } else {
-                log.error("获取任务消息实体失败 执行方法入口：{} 消息实体：{}", signature, entityAttributeName);
+            LocalTaskMessageEntityCommand command = getLocalTaskMessageEntityCommand(joinPoint, entityAttributeName);
+            if (command == null) {
+                throw new IllegalArgumentException("未能从方法参数中提取 LocalTaskMessageEntityCommand，方法：" + signature);
             }
+
+            LocalTaskMessageHouseContext.updateTaskName(command.getTaskName());
+            localTaskMessageHandleService.handleLocalTaskMessage(command);
             return result;
         } catch (Throwable e) {
-            log.error("处理任务消息失败 - 错误: {}", e.getMessage(), e);
+            log.error("处理本地任务消息失败，方法：{}", signature, e);
             throw e;
+        } finally {
+            LocalTaskMessageHouseContext.restore(previousContext);
         }
     }
 
+    /**
+     * 提取消息实体。
+     * <p>
+     * 先尝试从方法直接参数中查找；
+     * 如果注解配置了属性路径，再按路径查找嵌套对象。
+     */
     private LocalTaskMessageEntityCommand getLocalTaskMessageEntityCommand(ProceedingJoinPoint joinPoint, String entityAttributeName) {
         Object[] args = joinPoint.getArgs();
         if (args == null || args.length == 0) {
             return null;
         }
+
         if (!StringUtils.hasText(entityAttributeName)) {
             return getDirectLocalTaskMessageEntityCommand(args);
         }
@@ -118,7 +152,9 @@ public class LocalTaskMessageAop {
         return null;
     }
 
-    private LocalTaskMessageEntityCommand getNestedLocalTaskMessageEntityCommand(ProceedingJoinPoint joinPoint, String entityAttributeName, Object[] args) {
+    private LocalTaskMessageEntityCommand getNestedLocalTaskMessageEntityCommand(ProceedingJoinPoint joinPoint,
+                                                                                 String entityAttributeName,
+                                                                                 Object[] args) {
         String[] attributePath = entityAttributeName.split("\\.");
         if (attributePath.length == 0) {
             return null;
@@ -133,6 +169,7 @@ public class LocalTaskMessageAop {
             if (!attributePath[0].equals(parameterNames[i])) {
                 continue;
             }
+
             Object value = args[i];
             for (int j = 1; j < attributePath.length; j++) {
                 value = getPropertyValue(value, attributePath[j]);
@@ -140,6 +177,7 @@ public class LocalTaskMessageAop {
                     return null;
                 }
             }
+
             if (value instanceof LocalTaskMessageEntityCommand) {
                 return (LocalTaskMessageEntityCommand) value;
             }
@@ -162,15 +200,19 @@ public class LocalTaskMessageAop {
         if (source instanceof Map) {
             return ((Map<?, ?>) source).get(propertyName);
         }
+
         BeanWrapper beanWrapper = new BeanWrapperImpl(source);
         try {
             return beanWrapper.getPropertyValue(propertyName);
         } catch (BeansException e) {
-            log.error("读取任务消息实体属性失败 属性：{} 对象类型：{}", propertyName, source.getClass().getName(), e);
+            log.error("读取消息实体嵌套属性失败，属性：{}，对象类型：{}", propertyName, source.getClass().getName(), e);
             return null;
         }
     }
 
+    /**
+     * 用运行时异常把 checked exception 带出 lambda。
+     */
     private static class LocalTaskMessageAopRuntimeException extends RuntimeException {
 
         private final Throwable cause;
